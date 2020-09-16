@@ -3,17 +3,31 @@ radio.onReceivedNumber(function (receivedNumber) {
     signalStrength = radio.receivedPacket(RadioPacketProperty.SignalStrength)
     approximateDistance = Math.round(Math.map(signalStrength, -128, -42, 8, 0))
     basic.showString("" + (approximateDistance))
+    led.plotBarGraph(
+    mappedQuality,
+    128
+    )
 })
 input.onButtonPressed(Button.A, function () {
-    BTChannel = BTChannel + 1
-    BTChannel = BTChannel % 255
+    BTChannel = wrapValue(BTChannel - 1, 1, 255)
     basic.showString("" + (BTChannel))
 })
+// Forces a number between minLimit and maxLimit
+// beware: only works with ranges from 0 to positive something
+function wrapValue (value: number, minLimit: number, maxLimit: number) {
+    if (value < minLimit) {
+        return maxLimit - value
+    } else if (value > maxLimit) {
+        return value - maxLimit
+    } else {
+        return value
+    }
+}
 input.onButtonPressed(Button.B, function () {
-    BTChannel = BTChannel - 1
-    BTChannel = BTChannel % 255
+    BTChannel = wrapValue(BTChannel + 1, 1, 255)
     basic.showString("" + (BTChannel))
 })
+// just some LED flashing to draw attention to the screen before the data appears
 function blinkForAttention () {
     basic.showLeds(`
         . . . . .
@@ -31,7 +45,9 @@ function blinkForAttention () {
     blipSprite.delete()
     basic.pause(50)
 }
+// Just a test for github commits
 let blipSprite: game.LedSprite = null
+let mappedQuality = 0
 let approximateDistance = 0
 let signalStrength = 0
 let BTChannel = 0
@@ -40,5 +56,6 @@ radio.setGroup(BTChannel)
 basic.pause(2000)
 basic.forever(function () {
     radio.sendNumber(1)
+    mappedQuality = Math.map(signalStrength, -42, -128, 0, 128)
     basic.pause(5000)
 })
